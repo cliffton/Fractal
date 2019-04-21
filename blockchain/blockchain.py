@@ -27,7 +27,10 @@ class Blockchain:
             :return: None
         """
         parsed_url = urlparse(address)
-        self.nodes.add(parsed_url.netloc)
+        self.nodes.add(parsed_url.path)
+        for node in self.nodes:
+            node_url = node + "/nodes/register"
+            requests.post()
 
     def valid_chain(self, chain):
         """
@@ -164,3 +167,5 @@ class Blockchain:
         guess = f'{last_proof}{proof}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
         return guess_hash[:4] == "0000"
+
+
