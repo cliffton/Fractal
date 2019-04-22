@@ -20,18 +20,18 @@ class Blockchain:
         # Create genesis block
         self.new_block(previous_hash=1, proof=100)
 
-    def register_node(self, address):
-        """
-            Add a new node to the list of nodes
-            :param address: <str> Address of node. Eg. 'http://192.168.0.5:5000'
-            :return: None
-        """
-        parsed_url = urlparse(address)
-        # if (parsed_url != node_identifier) and (parsed_url not in self.nodes):
-        #     self.nodes.add(parsed_url.path)
-        #     for node in self.nodes:
-        #         node_url = node + "/nodes/register"
-        #         requests.post(node_url)
+    # def register_node(self, address):
+    #     """
+    #         Add a new node to the list of nodes
+    #         :param address: <str> Address of node. Eg. 'http://192.168.0.5:5000'
+    #         :return: None
+    #     """
+    #     parsed_url = urlparse(address)
+    #     if (parsed_url != node_identifier) and (parsed_url not in self.nodes):
+    #         self.nodes.add(parsed_url.path)
+    #         for node in self.nodes:
+    #             node_url = node + "/nodes/register"
+    #             requests.post(node_url)
 
     def valid_chain(self, chain):
         """
