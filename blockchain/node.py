@@ -1,11 +1,14 @@
 import json
 import sys
 from uuid import uuid4
+from multiprocessing.dummy import Pool
 
 import requests
 
 from blockchain import Blockchain
 from flask import Flask, jsonify, request
+
+pool = Pool(10)
 
 
 class Node(Flask):
@@ -32,8 +35,10 @@ class Node(Flask):
         values["nodes"].append(self.uri)
         try:
             # req = requests.post(node_url, data=json.dumps(values))
-            req = requests.post(node_url, json=values)
-            print(req)
+            # req = requests.post(node_url, json=values)
+            pool.apply_async(requests.post, [node_url],
+                             kwds={"json": values})
+            # print(req)
         except Exception as e:
             print("error")
 
@@ -62,6 +67,27 @@ def register_nodes():
     return jsonify(response), 201
 
 
+def get_nodes():
+    # values = request.get_json()
+    #
+    # nodes = values.get('nodes')
+    # new_node = values.get('new-node')
+    # if nodes is None:
+    #     return "Error: Please supply a valid list of nodes", 400
+    #
+    # for n in node.network:
+    #     if n not in nodes:
+    #         node.register_node(n, values)
+    #
+    # node.network.add(new_node)
+
+    response = {
+        'message': 'New nodes have been added',
+        'total_nodes': list(node.network),
+    }
+    return jsonify(response), 200
+
+
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print("Usage")
@@ -70,5 +96,6 @@ if __name__ == '__main__':
     ip = sys.argv[1]
     port = sys.argv[2]
     node.add_url_rule('/nodes/register', None, register_nodes, methods=['POST'])
+    node.add_url_rule('/nodes/all', None, get_nodes, methods=['GET'])
     node.set_uri(ip, port)
     node.run(host="0.0.0.0", port=port)
