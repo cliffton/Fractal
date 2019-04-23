@@ -18,6 +18,7 @@ class Blockchain:
     def __init__(self):
         self.chain = []
         self.current_transactions = []
+        self.current_transaction_uuids = []
         self.nodes = set()
 
         # Create genesis block
@@ -114,11 +115,12 @@ class Blockchain:
         }
 
         self.current_transactions = []
+        self.current_transaction_uuids = []
         self.chain.append(block)
 
         return block
 
-    def new_transaction(self, sender, recipient, amount):
+    def new_transaction(self, sender, recipient, amount, uuid):
         """
             Creates a new transaction to go into the next mined Block
             :param sender: <str> Address of the Sender
@@ -126,6 +128,7 @@ class Blockchain:
             :param amount: <int> Amount
             :return: <int> The index of the Block that will hold this transaction
         """
+        self.current_transaction_uuids.append(uuid)
         self.current_transactions.append({
             'sender': sender,
             'recipient': recipient,

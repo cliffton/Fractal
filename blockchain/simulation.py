@@ -1,5 +1,6 @@
 import random
 import time
+from uuid import uuid4
 
 import requests
 
@@ -37,7 +38,8 @@ t2 = {
     "transaction": {
         "sender": "d4ee26eee15148ee92c6cd394edd974e",
         "recipient": "someone-other-address",
-        "amount": 2
+        "amount": 2,
+        "uuid": str(uuid4())
     }
 }
 rep = requests.post("http://localhost:5000/transactions/new", json=t2)
@@ -48,7 +50,8 @@ rep = requests.post("http://localhost:5000/transactions/new", json=t2)
 count = 2
 while True:
     count += 1
-    timeDelay = random.randrange(0, 3)
+    timeDelay = random.randrange(0, 10)
     time.sleep(timeDelay)
     t2['transaction']["amount"] = count
+    t2['transaction']["uuid"] = str(uuid4())
     rep = requests.post("http://localhost:5000/transactions/new", json=t2)

@@ -48,12 +48,16 @@ def new_transactions():
         return 'Missing values', 400
 
     # Create a new Transaction
-    index = node.blockchain.new_transaction(transaction['sender'], transaction['recipient'], transaction['amount'])
-    for n in node.network:
-        if n not in nodes:
-            node.send_transaction(n, values)
+    if transaction["uuid"] not in node.blockchain.current_transaction_uuids:
+        index = node.blockchain.new_transaction(transaction['sender'], transaction['recipient'], transaction['amount'],
+                                                transaction['uuid'])
+        for n in node.network:
+            if n not in nodes:
+                node.send_transaction(n, values)
 
-    response = {'message': f'Transaction will be added to Block {index}'}
+        response = {'message': f'Transaction will be added to Block {index}'}
+    else:
+        response = {}
 
     return jsonify(response), 201
 
@@ -63,12 +67,13 @@ def receive_block():
     nodes = values.get("nodes")
     block = values.get("block")
 
-    node.blockchain.current_transactions = []
-    node.blockchain.chain.append(block)
-    for n in node.network:
-        if n not in nodes:
-            node.send_block(n, values)
-    node.blockchain.resolve_conflicts()
+    if block not in node.blockchain.chain:
+        node.blockchain.current_transactions = []
+        node.blockchain.chain.append(block)
+        for n in node.network:
+            if n not in nodes:
+                node.send_block(n, values)
+        node.blockchain.resolve_conflicts()
     response = {'message': f'Transaction will be added to Block'}
 
     return jsonify(response), 200
@@ -83,6 +88,7 @@ def mine():
     # We must receive a reward for finding the proof.
     # The sender is "0" to signify that this node has mined a new coin.
     node.blockchain.new_transaction(
+        uuid=uuid4(),
         sender="0",
         recipient=node.node_identifier,
         amount=1,
@@ -104,6 +110,7 @@ def mine():
 
 
 def full_chain():
+    node.blockchain.resolve_conflicts()
     response = {
         'chain': node.blockchain.chain,
         'length': len(node.blockchain.chain)

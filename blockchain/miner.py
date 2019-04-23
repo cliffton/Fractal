@@ -89,7 +89,7 @@ def valid_proof(last_proof, proof):
     """
     guess = f'{last_proof}{proof}'.encode()
     guess_hash = hashlib.sha256(guess).hexdigest()
-    nouce = "00000"
+    nouce = "000000"
     return guess_hash[:len(nouce)] == nouce
 
 # import requests
