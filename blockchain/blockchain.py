@@ -1,16 +1,15 @@
 """
-Authors: Manpreet Kaur
-         Cliffton Fernandes
+CSCI-652 Project
+@author Manpreet Kaur (mk3646)
+@author Cliffton Fernandes (cf6715)
 """
 import hashlib
 import json
 from time import time
-from urllib.parse import urlparse
 import logging
+import requests
 
 logger = logging.getLogger(__name__)
-
-import requests
 
 
 class Blockchain:
@@ -22,94 +21,69 @@ class Blockchain:
         self.nodes = set()
 
         # Create genesis block
-        self.new_block(previous_hash=1, proof=100)
-
-    # def register_node(self, address):
-    #     """
-    #         Add a new node to the list of nodes
-    #         :param address: <str> Address of node. Eg. 'http://192.168.0.5:5000'
-    #         :return: None
-    #     """
-    #     parsed_url = urlparse(address)
-    #     if (parsed_url != node_identifier) and (parsed_url not in self.nodes):
-    #         self.nodes.add(parsed_url.path)
-    #         for node in self.nodes:
-    #             node_url = node + "/nodes/register"
-    #             requests.post(node_url)
+        self.new_block(previous_hash=1, proof=1)
 
     def valid_chain(self, chain):
-
         """
-                Determine if a given blockchain is valid
-                :param chain: <list> A blockchain
-                :return: <bool> True if valid, False if not
+        Checks if the chain is valid by
+        iterating through the chain and checking the
+        hash of each block matching the last block.
+        :param chain: block chain
+        :return: True/False
         """
 
         logger.error("Checking validity.")
 
-        last_block = chain[0]
-        current_index = 1
+        previous_block = chain[0]
+        block_index = 1
 
-        while current_index < len(chain):
-            block = chain[current_index]
-            print(f'{last_block}')
-            print(f'{block}')
-            print("\n-----------\n")
-            # Check that the hash of the block is correct
-            if block['previous_hash'] != self.hash(last_block):
+        while block_index < len(chain):
+            current_block = chain[block_index]
+            if current_block['previous_hash'] != Blockchain.hash(previous_block):
                 return False
 
-            # Check that the Proof of Work is correct
-            if not self.valid_proof(last_block['proof'], block['proof']):
+            if not Blockchain.valid_proof(previous_block['proof'], current_block['proof']):
                 return False
 
-            last_block = block
-            current_index += 1
+            previous_block = current_block
+            block_index += 1
 
         return True
 
     def resolve_conflicts(self):
         """
-            This is our Consensus Algorithm, it resolves conflicts
-            by replacing our chain with the longest one in the network.
-            :return: <bool> True if our chain was replaced, False if not
+        Resolves conflicts if one chain
+        is longer than other chain
+        in different nodes.
+        :return: True/False
         """
         logger.error("Resolving Issues")
-        neighbours = self.nodes
         new_chain = None
-
-        # We're only looking for chains longer than ours
         max_length = len(self.chain)
 
-        # Grab and verify the chains from all the nodes in our network
-        for node in neighbours:
-            response = requests.get(f'http://{node}/chain')
+        for n in self.nodes:
+            response = requests.get("http://" + n + "/chain")
 
             if response.status_code == 200:
-                # length = response.json()['length']
-                logger.error("------------------------------------")
                 chain = response.json()['chain']
                 length = len(chain)
 
-                # Check if the length is longer and the chain is valid
-                if length >= max_length and self.valid_chain(chain):
+                if length >= max_length and Blockchain.valid_chain(chain):
                     max_length = length
                     new_chain = chain
 
-        # Replace our chain if we discovered a new, valid chain longer than ours
         if new_chain:
             logger.info("Replacing new chain")
             self.chain = new_chain
             return True
-
         return False
 
     def new_block(self, proof, previous_hash=None):
         """
-            Create a new Block in the Blockchain
-            :param proof: <int> The proof given by the Proof of Work algorithm
-            :param previous_hash: (Optional) <str> Hash of previous Block
-            :return: <dict> New Block
+        Adds a new block to the blockchain
+        :param proof:
+        :param previous_hash:
+        :return:
         """
         block = {
             'index': len(self.chain) + 1,
@@ -117,22 +91,16 @@ class Blockchain:
             'transactions': self.current_transactions,
             'proof': proof,
             'previous_hash': previous_hash or self.hash(self.chain[-1])
-
         }
 
         self.current_transactions = []
         self.current_transaction_uuids = []
         self.chain.append(block)
-
         return block
 
     def new_transaction(self, sender, recipient, amount, uuid):
         """
-            Creates a new transaction to go into the next mined Block
-            :param sender: <str> Address of the Sender
-            :param recipient: <str> Address of the Recipient
-            :param amount: <int> Amount
-            :return: <int> The index of the Block that will hold this transaction
+            Creates new transactions in the system.
         """
         self.current_transaction_uuids.append(uuid)
         self.current_transactions.append({
@@ -149,36 +117,46 @@ class Blockchain:
     @staticmethod
     def hash(block):
         """
-            Creates a SHA-256 hash of a Block
-            :param block: <dict> Block
-            :return: <str>
+        Given a block generates the sha256 hash
+        of the block.
+        :param block: block
+        :return:
         """
-        # We must make sure that the Dictionary is Ordered, or we'll have inconsistent hashes
         block_string = json.dumps(block, sort_keys=True).encode()
         return hashlib.sha256(block_string).hexdigest()
 
-    def proof_of_work(self, last_proof):
+    @staticmethod
+    def proof_of_work(last_proof, node):
         """
-            Simple Proof of Work Algorithm:
-             - Find a number p' such that hash(pp') contains leading 4 zeroes, where p is the previous p'
-             - p is the previous proof, and p' is the new proof
-            :param last_proof: <int>
-            :return: <int>
+        The proof of work algorithm
+        Given the proof of the last block it
+        tries to find the proof of the next block.
+        :param last_proof: proof of last block
+        :param node: node
+        :return: proof (int)
         """
         proof = 0
-        while self.valid_proof(last_proof, proof) is False:
+        while True:
+            if node.blockchain.valid_proof(last_proof, proof):
+                return proof
+            current_proof = node.get_last_hash()
+            if last_proof != current_proof:
+                return
             proof += 1
-        return proof
 
     @staticmethod
-    def valid_proof(last_proof, proof):
+    def valid_proof(previous_proof, proof):
         """
-            Validates the Proof: Does hash(last_proof, proof) contain 4 leading zeroes?
-            :param last_proof: <int> Previous Proof
-            :param proof: <int> Current Proof
-            :return: <bool> True if correct, False if not.
+        Checks if hashing the last hash and the currect found hash
+        returns a new hash with the last characters as zero.
+        Basically varifies the nounce of the hash.
+        :param previous_proof: previous proof
+        :param proof: currect proof to varify
+        :return: Boolean (True/False)
         """
-        guess = f'{last_proof}{proof}'.encode()
-        guess_hash = hashlib.sha256(guess).hexdigest()
-        nouce = "00000"
-        return guess_hash[:len(nouce)] == nouce
+        nouce = "000000"
+        _tmp = f'{previous_proof}{proof}'.encode()
+        new_hash = hashlib.sha256(_tmp).hexdigest()
+        if new_hash[:len(nouce)] == nouce:
+            return True
+        return False
