@@ -86,8 +86,9 @@ def receive_block():
     nodes = values.get("nodes")
     block = values.get("block")
 
-    if block not in node.blockchain.chain:
+    if block["proof"] not in [b["proof"] for b in node.blockchain.chain]:
         node.blockchain.current_transactions = []
+        node.blockchain.current_transaction_uuids = []
         node.blockchain.chain.append(block)
         for n in node.network:
             if n not in nodes:
@@ -105,7 +106,7 @@ def mine():
     """
     last_block = node.blockchain.last_block
     last_proof = last_block['proof']
-    proof = node.blockchain.proof_of_work(last_proof)
+    proof = node.blockchain.proof_of_work(last_proof, node)
 
     previous_hash = node.blockchain.hash(last_block)
     block = node.blockchain.new_block(proof, previous_hash)

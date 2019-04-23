@@ -13,6 +13,11 @@ logger = logging.getLogger(__name__)
 
 
 class Blockchain:
+    """
+    This class represents in the blockchain.
+    It provides methods to add, check and varify the
+    blockchain.
+    """
 
     def __init__(self):
         self.chain = []
