@@ -38,11 +38,15 @@ class Blockchain:
     #             requests.post(node_url)
 
     def valid_chain(self, chain):
+
         """
-            Determine if a given blockchain is valid
-            :param chain: <list> A blockchain
-            :return: <bool> True if valid, False if not
+                Determine if a given blockchain is valid
+                :param chain: <list> A blockchain
+                :return: <bool> True if valid, False if not
         """
+
+        logger.error("Checking validity.")
+
         last_block = chain[0]
         current_index = 1
 
@@ -70,7 +74,7 @@ class Blockchain:
             by replacing our chain with the longest one in the network.
             :return: <bool> True if our chain was replaced, False if not
         """
-
+        logger.error("Resolving Issues")
         neighbours = self.nodes
         new_chain = None
 
@@ -82,23 +86,25 @@ class Blockchain:
             response = requests.get(f'http://{node}/chain')
 
             if response.status_code == 200:
-                length = response.json()['length']
+                # length = response.json()['length']
+                logger.error("------------------------------------")
                 chain = response.json()['chain']
+                length = len(chain)
 
                 # Check if the length is longer and the chain is valid
-                if length > max_length and self.valid_chain(chain):
+                if length >= max_length and self.valid_chain(chain):
                     max_length = length
                     new_chain = chain
 
         # Replace our chain if we discovered a new, valid chain longer than ours
         if new_chain:
+            logger.info("Replacing new chain")
             self.chain = new_chain
             return True
 
         return False
 
     def new_block(self, proof, previous_hash=None):
-
         """
             Create a new Block in the Blockchain
             :param proof: <int> The proof given by the Proof of Work algorithm

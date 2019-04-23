@@ -1,3 +1,10 @@
+"""
+CSCI-652 Project
+@author Manpreet Kaur (mk3646)
+@author Cliffton Fernandes (cf6715)
+"""
+from flask import request, jsonify
+
 from node import *
 
 
@@ -6,19 +13,17 @@ def register_nodes():
 
     nodes = values.get('nodes')
     new_node = values.get('new-node')
-    if nodes is None:
-        return "Error: Please supply a valid list of nodes", 400
-
     if new_node != node.uri:
         node.network.add(new_node)
+        node.blockchain.nodes.add(new_node)
 
     for n in node.network:
         if n not in nodes:
             node.register_node(n, values)
 
     response = {
-        'message': 'New nodes have been added',
-        'total_nodes': list(node.network),
+        'message': 'Node Added',
+        'nodes': list(node.network),
     }
     return jsonify(response), 201
 
@@ -73,7 +78,7 @@ def receive_block():
         for n in node.network:
             if n not in nodes:
                 node.send_block(n, values)
-        node.blockchain.resolve_conflicts()
+        # node.blockchain.resolve_conflicts()
     response = {'message': f'Transaction will be added to Block'}
 
     return jsonify(response), 200
@@ -87,12 +92,12 @@ def mine():
 
     # We must receive a reward for finding the proof.
     # The sender is "0" to signify that this node has mined a new coin.
-    node.blockchain.new_transaction(
-        uuid=uuid4(),
-        sender="0",
-        recipient=node.node_identifier,
-        amount=1,
-    )
+    # node.blockchain.new_transaction(
+    #     uuid=uuid4(),
+    #     sender="0",
+    #     recipient=node.node_identifier,
+    #     amount=1,
+    # )
 
     # Forge the new Block by adding it to the chain
     previous_hash = node.blockchain.hash(last_block)
@@ -110,9 +115,33 @@ def mine():
 
 
 def full_chain():
-    node.blockchain.resolve_conflicts()
+    # if not node.blockchain.valid_chain(node.blockchain.chain):
+    #     node.blockchain.resolve_conflicts()
     response = {
         'chain': node.blockchain.chain,
         'length': len(node.blockchain.chain)
     }
+    return jsonify(response), 200
+
+
+def consensus():
+    replaced = node.blockchain.resolve_conflicts()
+
+    if replaced:
+        response = {
+            'message': 'Our chain was replaced',
+            'new_chain': node.blockchain.chain
+        }
+    else:
+        response = {
+            'message': 'Our chain is authoritative',
+            'chain': node.blockchain.chain
+        }
+
+    return jsonify(response), 200
+
+
+def stop_simulation():
+    node.stop_simulation = True
+    response = {"done": "done"}
     return jsonify(response), 200

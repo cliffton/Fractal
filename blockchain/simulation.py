@@ -50,8 +50,20 @@ rep = requests.post("http://localhost:5000/transactions/new", json=t2)
 count = 2
 while True:
     count += 1
-    timeDelay = random.randrange(0, 10)
+    timeDelay = random.randrange(10, 20)
     time.sleep(timeDelay)
-    t2['transaction']["amount"] = count
-    t2['transaction']["uuid"] = str(uuid4())
-    rep = requests.post("http://localhost:5000/transactions/new", json=t2)
+    recipients = ["Modi", "Rahul", "Kejriwal"]
+    servers = ["5000", "5001", "5002", "5003"]
+    t2 = {
+        "nodes": [],
+        "transaction": {
+            "sender": str(uuid4()),
+            "recipient": recipients[random.randrange(0, 3)],
+            "amount": 1,
+            "uuid": str(uuid4())
+        }
+    }
+    try:
+        rep = requests.post("http://localhost:" + servers[random.randrange(0, 4)] + "/transactions/new", json=t2)
+    except Exception as e:
+        print(str(e))

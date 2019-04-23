@@ -17,7 +17,8 @@ def mine(node):
     # f = open(node.node_identifier + "mine-out.out", "a")
     # f.write("new mining...\n")
     # f.close()
-
+    if node.stop_simulation:
+        return
     logger.error("minning - " + node.node_identifier)
     current = node.blockchain.last_block
     proof = proof_of_work(node.get_last_hash(), node)

@@ -9,6 +9,8 @@ def run(ip, port):
     node.add_url_rule('/block/new', None, receive_block, methods=['POST'])
     node.add_url_rule('/mine', None, mine, methods=['GET'])
     node.add_url_rule('/chain', None, full_chain, methods=['GET'])
+    node.add_url_rule('/nodes/resolve', None, consensus, methods=['GET'])
+    node.add_url_rule('/stop', None, stop_simulation, methods=['GET'])
     node.set_uri(ip, port)
     register_node = node.ip + ":" + str(int(node.port) - 1)
     data = {"nodes": [], "new-node": node.uri}
