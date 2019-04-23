@@ -6,6 +6,9 @@ import hashlib
 import json
 from time import time
 from urllib.parse import urlparse
+import logging
+
+logger = logging.getLogger(__name__)
 
 import requests
 
@@ -112,6 +115,7 @@ class Blockchain:
 
         self.current_transactions = []
         self.chain.append(block)
+
         return block
 
     def new_transaction(self, sender, recipient, amount):
@@ -167,5 +171,5 @@ class Blockchain:
         """
         guess = f'{last_proof}{proof}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
-        nouce = "0000"
+        nouce = "00000"
         return guess_hash[:len(nouce)] == nouce

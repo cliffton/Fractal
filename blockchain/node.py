@@ -8,6 +8,9 @@ import requests
 
 from blockchain import Blockchain
 from flask import Flask, jsonify, request
+import logging
+
+logger = logging.getLogger(__name__)
 
 from miner import mine
 
@@ -39,23 +42,23 @@ class Node(Flask):
         self.uri = ip + ":" + port
 
     def register_node(self, n, values):
-        node_url = "http://" + n + "/nodes/register"
-        values["nodes"].append(self.uri)
         try:
+            node_url = "http://" + n + "/nodes/register"
+            values["nodes"].append(self.uri)
             pool.apply_async(requests.post, [node_url],
                              kwds={"json": values})
         except Exception as e:
-            print(str(e))
+            logger.error(str(e))
 
     def send_transaction(self, n, values):
-        node_url = "http://" + n + "/transactions/new"
-        values["nodes"].append(self.uri)
         try:
+            node_url = "http://" + n + "/transactions/new"
+            values["nodes"].append(self.uri)
             # pool.apply_async(requests.post, [node_url],
             #                  kwds={"json": values})
             requests.post(node_url, json=values)
         except Exception as e:
-            print(str(e))
+            logger.error(str(e))
 
     def send_block_all(self, block):
         for n in self.network:
@@ -64,13 +67,13 @@ class Node(Flask):
         self.blockchain.resolve_conflicts()
 
     def send_block(self, n, values):
-        node_url = "http://" + n + "/block/new"
-        values["nodes"].append(self.uri)
         try:
+            node_url = "http://" + n + "/block/new"
+            values["nodes"].append(self.uri)
             pool.apply_async(requests.post, [node_url],
                              kwds={"json": values})
         except Exception as e:
-            print(str(e))
+            logger.error(str(e))
 
     def __eq__(self, other):
         return self.node_identifier == other.node_identifier

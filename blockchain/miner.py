@@ -20,7 +20,7 @@ def mine(node):
 
     logger.error("minning - " + node.node_identifier)
     current = node.blockchain.last_block
-    proof = proof_of_work(current['proof'], node)
+    proof = proof_of_work(node.get_last_hash(), node)
     if proof == None:
         # f = open(node.node_identifier + "mine-out.out", "a")
         # f.write("not found\n")
@@ -36,6 +36,7 @@ def mine(node):
         logger.error("minning - " + node.node_identifier + "-- found " + str(t) + " = " + str(proof))
 
         node.blockchain.new_block(proof, current['proof'])
+        node.send_block_all(node.blockchain.last_block)
         mine(node)
 
 
@@ -63,11 +64,18 @@ def proof_of_work(last_proof, node):
     proof = 0
 
     while valid_proof(last_proof, proof) is False:
-        if last_proof != node.get_last_hash():
+
+        # timeDelay = random.randrange(0, 100)
+        # time.sleep(timeDelay/1000.0)
+
+        current_hash = node.get_last_hash()
+
+
+        # logger.error("minning - " + node.node_identifier + " current hash " + str(current_hash))
+        if last_proof != current_hash:
+            logger.error("minning - " + node.node_identifier + " return None")
             return
         proof += 1
-    timeDelay = random.randrange(0, 4)
-    time.sleep(timeDelay)
     return proof
 
 
@@ -81,7 +89,7 @@ def valid_proof(last_proof, proof):
     """
     guess = f'{last_proof}{proof}'.encode()
     guess_hash = hashlib.sha256(guess).hexdigest()
-    nouce = "0000"
+    nouce = "00000"
     return guess_hash[:len(nouce)] == nouce
 
 # import requests
