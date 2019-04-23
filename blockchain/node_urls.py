@@ -25,16 +25,14 @@ def register_nodes():
 
 def get_nodes():
     response = {
-        'message': 'New nodes have been added',
-        'total_nodes': list(node.network),
+        'nodes': list(node.network),
     }
     return jsonify(response), 200
 
 
 def get_transactions():
     response = {
-        'message': 'New nodes have been added',
-        'total_nodes': list(node.blockchain.current_transactions),
+        'transaction': list(node.blockchain.current_transactions),
     }
     return jsonify(response), 200
 

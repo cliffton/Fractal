@@ -1,3 +1,6 @@
+import random
+import time
+
 import requests
 
 # Register Second Node
@@ -40,4 +43,12 @@ t2 = {
 rep = requests.post("http://localhost:5000/transactions/new", json=t2)
 
 # Mine Block 1
-rep = requests.get("http://localhost:5000/mine")
+# rep = requests.get("http://localhost:5000/mine")
+
+count = 2
+while True:
+    count += 1
+    timeDelay = random.randrange(0, 20)
+    time.sleep(timeDelay)
+    t2['transaction']["amount"] = count
+    rep = requests.post("http://localhost:5000/transactions/new", json=t2)

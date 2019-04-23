@@ -10,7 +10,8 @@ def valid_proof(last_proof, proof):
     """
     guess = f'{last_proof}{proof}'.encode()
     guess_hash = hashlib.sha256(guess).hexdigest()
-    return guess_hash[:6] == "000000"
+    nouce = "000000"
+    return guess_hash[:len(nouce)] == nouce
 
 
 def proof_of_work(last_proof):
@@ -20,4 +21,4 @@ def proof_of_work(last_proof):
     print(proof)
 
 
-proof_of_work(24348)
+proof_of_work(1)
