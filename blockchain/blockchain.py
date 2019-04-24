@@ -159,7 +159,7 @@ class Blockchain:
         :param proof: currect proof to varify
         :return: Boolean (True/False)
         """
-        nouce = "000000"
+        nouce = "00000"
         _tmp = f'{previous_proof}{proof}'.encode()
         new_hash = hashlib.sha256(_tmp).hexdigest()
         if new_hash[:len(nouce)] == nouce:

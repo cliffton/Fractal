@@ -1,4 +1,5 @@
 import random
+import sys
 import time
 from uuid import uuid4
 import logging
@@ -7,7 +8,8 @@ import requests
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-CANDIDATES = ["Narendra Modi", "Rahul Gandhi", "Arvind Kejriwal"]
+# CANDIDATES = ["Narendra Modi", "Rahul Gandhi", "Arvind Kejriwal"]
+CANDIDATES = ["Candidate 1", "Candidate 2", "Candidate 3"]
 SERVERS = ["5000", "5001", "5002", "5003"]
 
 
@@ -56,7 +58,18 @@ def stop():
             logging.info("> Stopping server: " + server)
             node_url = "http://127.0.0.1:" + server + "/stop"
             requests.get(node_url)
-        requests.get("http://127.0.0.1:5000/mine")
+        # requests.get("http://127.0.0.1:5000/mine")
+    except Exception as e:
+        logging.error(str(e))
+
+
+def forks():
+    try:
+        for server in SERVERS:
+            node_url = "http://127.0.0.1:" + server + "/nodes/forks"
+            resp = requests.get(node_url)
+            data = resp.json()
+            logger.info("Number of discarded blocks:" + str(data))
     except Exception as e:
         logging.error(str(e))
 
@@ -64,11 +77,10 @@ def stop():
 def results():
     try:
         for server in SERVERS:
-            result = {
-                "Rahul Gandhi": 0,
-                "Narendra Modi": 0,
-                "Arvind Kejriwal": 0
-            }
+
+            result = {}
+            for candidate in CANDIDATES:
+                result.update({candidate: 0})
             node_url = "http://127.0.0.1:" + server + "/chain"
             resp = requests.get(node_url)
             chain = resp.json()["chain"]
@@ -80,12 +92,15 @@ def results():
         logging.error(str(e))
 
 
-def run():
+def run(num_votes):
     register_nodes()
-    votes(30)
+    votes(num_votes)
     stop()
     results()
+    forks()
 
 
 if __name__ == "__main__":
-    run()
+    if len(sys.argv) < 2:
+        print("Usage: python simulation.py <number-of-votes>")
+    run(int(sys.argv[1]))

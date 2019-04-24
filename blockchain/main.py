@@ -27,6 +27,7 @@ def run(ip, port):
     node.add_url_rule('/mine', None, mine, methods=['GET'])
     node.add_url_rule('/chain', None, full_chain, methods=['GET'])
     node.add_url_rule('/nodes/resolve', None, resolve, methods=['GET'])
+    node.add_url_rule('/nodes/forks', None, get_forks, methods=['GET'])
     node.add_url_rule('/stop', None, stop_simulation, methods=['GET'])
     node.set_uri(ip, port)
 
@@ -45,7 +46,7 @@ def run(ip, port):
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print("Usage")
+        print("Usage: python main.py <IP-ADDRESS> <PORT>")
         sys.exit()
 
     ip = sys.argv[1]

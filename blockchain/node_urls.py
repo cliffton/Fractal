@@ -7,6 +7,8 @@ from flask import request, jsonify
 
 from node import *
 
+FORKS = 0
+
 
 def register_nodes():
     """
@@ -82,17 +84,22 @@ def receive_block():
     POST API that registers block.
     :return: Response
     """
+    global FORKS
+
     values = request.get_json()
     nodes = values.get("nodes")
     block = values.get("block")
 
-    if block["proof"] not in [b["proof"] for b in node.blockchain.chain]:
+    if block["index"] not in [b["index"] for b in node.blockchain.chain]:
         node.blockchain.current_transactions = []
         node.blockchain.current_transaction_uuids = []
         node.blockchain.chain.append(block)
         for n in node.network:
             if n not in nodes:
                 node.send_block(n, values)
+    else:
+        node.forks += 1
+        logger.error("-----> Block discarded")
         # node.blockchain.resolve_conflicts()
     response = {'message': 'Block received'}
 
@@ -143,6 +150,14 @@ def resolve():
 
     response = {
         'chain': node.blockchain.chain
+    }
+
+    return jsonify(response), 200
+
+
+def get_forks():
+    response = {
+        'forks': node.forks
     }
 
     return jsonify(response), 200

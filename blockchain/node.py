@@ -33,6 +33,7 @@ class Node(Flask):
         self.port = None
         self.uri = None
         self.stop_simulation = False
+        self.forks = 0
         # Miner.mine(self)
         # Miner.output_reset(self.node_identifier)
         # pool.apply_async(Miner.mine, [self])
