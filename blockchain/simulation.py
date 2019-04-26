@@ -32,7 +32,7 @@ def votes(max_count):
     count = 0
     while count < max_count:
         count += 1
-        delay = random.randrange(0, 10)
+        delay = random.randrange(1, 3)
         time.sleep(delay)
         candidate = CANDIDATES[random.randrange(0, 3)]
         t = {
@@ -46,7 +46,7 @@ def votes(max_count):
         }
         try:
             server = SERVERS[random.randrange(0, 4)]
-            logging.info("> Sending vote (" + str(count) + ") for candidate " + candidate + " to server: " + server)
+            logging.info("> Sending vote for " + candidate + " to server: " + server)
             requests.post("http://localhost:" + server + "/transactions/new", json=t)
         except Exception as e:
             logging.error(str(e))
@@ -58,7 +58,7 @@ def stop():
             logging.info("> Stopping server: " + server)
             node_url = "http://127.0.0.1:" + server + "/stop"
             requests.get(node_url)
-        # requests.get("http://127.0.0.1:5000/mine")
+        requests.get("http://127.0.0.1:5000/mine")
     except Exception as e:
         logging.error(str(e))
 
@@ -76,6 +76,7 @@ def forks():
 
 def results():
     try:
+        prev = None
         for server in SERVERS:
 
             result = {}
@@ -87,7 +88,9 @@ def results():
             for block in chain:
                 for txt in block["transactions"]:
                     result[txt["recipient"]] += 1
-            logging.info("Server:" + server + " result: " + str(result))
+            prev = result
+            # logging.info("Server:" + server + " result: " + str(result))
+        logging.info("Server result: " + str(prev))
     except Exception as e:
         logging.error(str(e))
 
